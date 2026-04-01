@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 import os
-import data_loader
-from functions import apply_butterworth_filter, get_basic_statistics
+from data_loader import *
+from functions import lowpass, highpass, bandpass, features
 
 class TestSignalSystem(unittest.TestCase):
     
@@ -19,29 +19,33 @@ class TestSignalSystem(unittest.TestCase):
 
     def test_data_loading(self):
         """Verify CSV loading and shape"""
-        time, signal = load_sensor_data(self.test_file) # edit function name
+        time, signal = load_csv(self.test_file)
         self.assertIsNotNone(time)
         self.assertEqual(len(time), 100)
 
     def test_statistics(self):
         """Verify statistical calculations"""
         data = np.array([1, 2, 3, 4, 5])
-        stats = get_basic_statistics(data)
+        stats = features(data)
         self.assertEqual(stats['mean'], 3.0)
         self.assertEqual(stats['range'], 4.0)
 
-    def test_filtering_output_shape(self):
-        """Ensure filtered signal length matches input"""
-        _, signal = load_sensor_data(self.test_file)
-        filtered = apply_butterworth_filter(signal, cutoff=10, fs=100)
-        self.assertEqual(len(filtered), len(signal))
+    def test_all_filters(self):
+    
+        signal = load_csv(self.test_file)
+        fs = 100
+        filter_functions = [lowpass, highpass, bandpass]
+    
+        for func in filter_functions:
+            filtered = func(signal, fs)
+            self.assertEqual(len(filtered), len(signal), f"{func.__name__} failed: output length mismatch")
 
     def test_robustness_empty_file(self):
         """Ensure system doesn't crash on empty input"""
         empty_file = "empty.csv"
         with open(empty_file, 'w') as f:
             f.write("")
-        time, signal = load_sensor_data(empty_file)
+        time, signal = load_csv(empty_file)
         self.assertIsNone(time)
         os.remove(empty_file)
 
