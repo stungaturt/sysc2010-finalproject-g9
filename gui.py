@@ -1,25 +1,99 @@
-import unittest
-import numpy as np
-import os
-import data_loader
-from functions import apply_butterworth_filter, get_basic_statistics
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from data_loader import load_sensor_data
+from functions import apply_butterworth_filter, compute_fft, get_basic_statistics
 
-class TestSignalSystem(unittest.TestCase):
-    
-    def setUp(self):
-        # Create a dummy CSV for testing
-        self.test_file = "test_data.csv"
-        t = np.linspace(0, 1, 100)
-        s = np.sin(2 * np.pi * 5 * t) + 0.5 * np.random.randn(100)
-        data = np.column_stack((t, s))
-        np.savetxt(self.test_file, data, delimiter=",", header="time,signal", comments='')
+class SensorGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("SYSC 2010 Signal Analysis Platform")
+        self.root.geometry("1000x800")
+        
+        # State variables
+        self.time = None
+        self.raw_signal = None
+        self.processed_signal = None
+        self.fs = 100  # Default sampling rate
+        
+        self.setup_ui()
 
-    def tearDown(self):
-        if os.path.exists(self.test_file):
-            os.remove(self.test_file)
+    def setup_ui(self):
+        # Control Panel
+        control_frame = ttk.Frame(self.root, padding="10")
+        control_frame.pack(side=tk.TOP, fill=tk.X)
+        
+        ttk.Button(control_frame, text="Load CSV", command=self.open_file).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(control_frame, text="Sensor Type:").pack(side=tk.LEFT, padx=5)
+        self.type_var = tk.StringVar()
+        self.type_menu = ttk.Combobox(control_frame, textvariable=self.type_var)
+        self.type_menu['values'] = ("ECG", "Temperature", "Respiration", "Motion")
+        self.type_menu.pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(control_frame, text="Process Signal", command=self.process).pack(side=tk.LEFT, padx=5)
 
-    def test_data_loading(self):
-        """Verify CSV loading and shape [cite: 200]"""
-        time, signal = load_sensor_data(self.test_file)
-        self.assertIsNotNone(time)
-        self.assertEqual(len(time), 100)
+        # Stats Display Panel
+        self.stats_label = ttk.Label(self.root, text="Stats: Load data to see metrics", font=('Helvetica', 10, 'bold'))
+        self.stats_label.pack(pady=5)
+
+        self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1, figsize=(8, 6))
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        
+        # Toolbar
+        toolbar = NavigationToolbar2Tk(self.canvas, self.root)
+        toolbar.update()
+
+    def open_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
+        if file_path:
+            self.time, self.raw_signal = load_sensor_data(file_path)
+            if self.time is not None:
+                self.update_plots(raw_only=True)
+                messagebox.showinfo("Success", "Data loaded successfully!")
+
+    def process(self):
+        if self.raw_signal is None:
+            messagebox.showwarning("Warning", "Please load a file first.")
+            return
+        
+        sensor_type = self.type_var.get()
+        if sensor_type == "ECG":
+            self.processed_signal = apply_butterworth_filter(self.raw_signal, 50, self.fs, 'low')
+        elif sensor_type == "Temperature":
+            self.processed_signal = apply_butterworth_filter(self.raw_signal, 0.5, self.fs, 'low')
+        else:
+            self.processed_signal = self.raw_signal
+            
+        # Update Stats
+        stats = get_basic_statistics(self.processed_signal)
+        self.stats_label.config(text=f"Mean: {stats['mean']:.2f} | Std: {stats['std']:.2f} | RMS: {stats['rms']:.2f} | Range: {stats['range']:.2f}")
+        
+        self.update_plots()
+
+    def update_plots(self, raw_only=False):
+        self.ax1.clear()
+        self.ax2.clear()
+        
+        # Time-domain
+        self.ax1.plot(self.time, self.raw_signal, label="Raw", alpha=0.5)
+        if not raw_only and self.processed_signal is not None:
+            self.ax1.plot(self.time, self.processed_signal, label="Processed", color='red')
+        self.ax1.set_title("Time Domain")
+        self.ax1.legend()
+        
+        # Frequency-domain (FFT)
+        if not raw_only and self.processed_signal is not None:
+            freqs, mag = compute_fft(self.processed_signal, self.fs)
+            self.ax2.plot(freqs, mag, color='green')
+            self.ax2.set_title("Frequency Domain (FFT)")
+            
+        self.fig.tight_layout()
+        self.canvas.draw()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SensorGUI(root)
+    root.mainloop()
