@@ -2,12 +2,12 @@ import unittest
 import numpy as np
 import os
 from data_loader import *
-from functions import lowpass, highpass, bandpass, features
+from functions import remove_baseline, lowpass, highpass, bandpass, features
 
 class TestSignalSystem(unittest.TestCase):
     
     def setUp(self):
-        self.test_file = "test_data.csv"
+        self.test_file = "env_temp_humidity_clean.csv"
         t = np.linspace(0, 1, 100)
         s = np.sin(2 * np.pi * 5 * t) + 0.5 * np.random.randn(100)
         data = np.column_stack((t, s))
@@ -31,7 +31,6 @@ class TestSignalSystem(unittest.TestCase):
         self.assertEqual(stats['range'], 4.0)
 
     def test_all_filters(self):
-    
         signal = load_csv(self.test_file)
         fs = 100
         filter_functions = [lowpass, highpass, bandpass]
