@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 df = pd.read_csv("EMG.csv")
 df.columns = df.columns.str.strip()
 print("Columns:", df.columns)
-emg_col = "underhand"
+df["time"] = pd.to_numeric(df["time"], errors="coerce")
+df["signal"] = pd.to_numeric(df["signal"], errors="coerce")
+emg_col = "signal"
 
 signal = df[emg_col]
 jitter = np.diff(signal, prepend=signal.iloc[1])
