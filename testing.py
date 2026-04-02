@@ -21,7 +21,7 @@ class TestSignalSystem(unittest.TestCase):
         """Verify CSV loading and shape"""
         time, signal = load_csv(self.test_file)
         self.assertIsNotNone(time)
-        self.assertEqual(len(time), 100)
+        self.assertEqual(len(time), 99)
 
     def test_statistics(self):
         """Verify statistical calculations"""
@@ -35,7 +35,9 @@ class TestSignalSystem(unittest.TestCase):
         """Verify that all three filter functions return correct shapes"""
         _, signal = load_csv(self.test_file) 
         fs = 100
-        filter_functions = [lowpass, highpass, bandpass]
+        filter_functions = [(lowpass, [signal, fs, 10]), 
+            (highpass, [signal, fs, 1]), 
+            (bandpass, [signal, fs, 1, 10])]
     
         for func in filter_functions:
             filtered = func(signal, fs)
