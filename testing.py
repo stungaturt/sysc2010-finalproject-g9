@@ -39,8 +39,8 @@ class TestSignalSystem(unittest.TestCase):
             (highpass, [signal, fs, 1]), 
             (bandpass, [signal, fs, 1, 10])]
     
-        for func in filter_functions:
-            filtered = func(signal, fs)
+        for func, args in filter_functions:
+            filtered = func(*args)
             self.assertEqual(len(filtered), len(signal), f"{func.__name__} failed")
 
     def test_robustness_empty_file(self):
