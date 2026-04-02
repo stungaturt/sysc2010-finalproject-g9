@@ -8,7 +8,7 @@ from functions import remove_baseline, lowpass, highpass, bandpass, features, co
 class SensorGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("SYSC 2010 Signal Analysis Platform")
+        self.root.title("SYSC 2010 Signal Analysis Project")
         self.root.geometry("1000x800")
         
         # State variables
