@@ -3,7 +3,7 @@ import numpy as np
 
 def load_csv(file):
     try: 
-        data = pd.read_csv(file, header=None)
+        data = pd.read_csv(file, header=None, skiprows = 1)
 
         time = data.iloc[:,0].values
         signal = data.iloc[:,1].values
