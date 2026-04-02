@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from data_loader import load_sensor_data
-from functions import apply_butterworth_filter, compute_fft, get_basic_statistics
+from data_loader import load_csv
+from functions import remove_baseline, lowpass, highpass, bandpass, features, compute_fft
 
 class SensorGUI:
     def __init__(self, root):
@@ -49,7 +49,7 @@ class SensorGUI:
     def open_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
         if file_path:
-            self.time, self.raw_signal = load_sensor_data(file_path)
+            self.time, self.raw_signal = load_csv(file_path)
             if self.time is not None:
                 self.update_plots(raw_only=True)
                 messagebox.showinfo("Success", "Data loaded successfully!")
@@ -61,14 +61,14 @@ class SensorGUI:
         
         sensor_type = self.type_var.get()
         if sensor_type == "ECG":
-            self.processed_signal = apply_butterworth_filter(self.raw_signal, 50, self.fs, 'low')
+            self.processed_signal = lowpass(self.raw_signal, self.fs, 50)
         elif sensor_type == "Temperature":
-            self.processed_signal = apply_butterworth_filter(self.raw_signal, 0.5, self.fs, 'low')
+            self.processed_signal = lowpass(self.raw_signal, self.fs, 50)
         else:
             self.processed_signal = self.raw_signal
             
         # Update Stats
-        stats = get_basic_statistics(self.processed_signal)
+        stats = features(self.processed_signal)
         self.stats_label.config(text=f"Mean: {stats['mean']:.2f} | Std: {stats['std']:.2f} | RMS: {stats['rms']:.2f} | Range: {stats['range']:.2f}")
         
         self.update_plots()
