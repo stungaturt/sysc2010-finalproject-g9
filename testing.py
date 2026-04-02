@@ -7,7 +7,7 @@ from functions import remove_baseline, lowpass, highpass, bandpass, features
 class TestSignalSystem(unittest.TestCase):
     
     def setUp(self):
-        self.test_file = "ecg_signal.csv"
+        self.test_file = "temp_signal.csv"
         t = np.linspace(0, 1, 100)
         s = np.sin(2 * np.pi * 5 * t) + 0.5 * np.random.randn(100)
         data = np.column_stack((t, s))
