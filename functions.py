@@ -23,17 +23,17 @@ def normalize(signal):
         return signal
     return [x / max_val for x in signal]
 
-def lowpass(signal, fs, cutoff = 5):
+def lowpass(signal, fs, cutoff):
     "Does a lowpass filter for the giving signal"
     b, a = sc.butter(4, cutoff / (fs / 2), btype='low')
     return sc.filtfilt(b,a, signal)
 
-def highpass(signal, fs, cutoff = 0.5):
+def highpass(signal, fs, cutoff):
     "Does a highpass filter for the giving signal"
     b, a = sc.butter(4, cutoff / (fs / 2), btype='high')
     return sc.filtfilt(b,a, signal)
 
-def bandpass(signal, fs, lowc = 0.5, highc = 40):
+def bandpass(signal, fs, lowc, highc):
     "Does a bandpass filter for the giving signal"
     b, a = sc.butter(4, [lowc/(fs/2), highc/(fs/2)], btype='band')
     return sc.filtfilt(b,a, signal)
