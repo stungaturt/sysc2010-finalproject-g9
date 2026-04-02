@@ -65,6 +65,8 @@ class SensorGUI:
             self.processed_signal = bandpass(self.raw_signal, self.fs, 0.5, 40)
         elif sensor_type == "Temperature":
             self.processed_signal = lowpass(self.raw_signal, self.fs, 40)
+        elif sensor_type == "Motion":
+            self.processed_signal = highpass(self.raw_signal, self.fs, 0.5)
         else:
             self.processed_signal = self.raw_signal
         
