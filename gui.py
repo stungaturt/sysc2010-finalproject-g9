@@ -1,4 +1,5 @@
 import tkinter as tk
+import numpy as np
 from tkinter import filedialog, messagebox, ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -61,16 +62,21 @@ class SensorGUI:
         
         sensor_type = self.type_var.get()
         if sensor_type == "ECG":
-            self.processed_signal = lowpass(self.raw_signal, self.fs, 50)
+            self.processed_signal = lowpass(self.raw_signal, self.fs, 0.1)
         elif sensor_type == "Temperature":
-            self.processed_signal = lowpass(self.raw_signal, self.fs, 50)
+            self.processed_signal = lowpass(self.raw_signal, self.fs, 40)
         else:
             self.processed_signal = self.raw_signal
             
         # Update Stats
         stats = features(self.processed_signal)
-        self.stats_label.config(text=f"Mean: {stats['mean']:.2f} | Std: {stats['std']:.2f} | RMS: {stats['rms']:.2f} | Range: {stats['range']:.2f}")
-        
+        signal_range = np.max(self.process_signal) - np.min(self.processed_signal)
+        self.stats_label.config(
+            text=f"Mean: {stats['mean']:.2f} | "
+                 f"Std: {stats['std']:.2f} | "
+                 f"RMS: {stats['rms']:.2f} | "
+                 f"Range: {signal_range:.2f}"
+        )
         self.update_plots()
 
     def update_plots(self, raw_only=False):
