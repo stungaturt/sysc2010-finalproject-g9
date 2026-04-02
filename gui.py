@@ -62,12 +62,12 @@ class SensorGUI:
         
         sensor_type = self.type_var.get()
         if sensor_type == "ECG":
-            self.processed_signal = bandpass(self.raw_signal, self.fs)
+            self.processed_signal = bandpass(self.raw_signal, self.fs, 0.5, 40)
         elif sensor_type == "Temperature":
             self.processed_signal = lowpass(self.raw_signal, self.fs, 40)
         else:
             self.processed_signal = self.raw_signal
-            
+        
         # Update Stats
         stats = features(self.processed_signal)
         signal_range = np.max(self.processed_signal) - np.min(self.processed_signal)
